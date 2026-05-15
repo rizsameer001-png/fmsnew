@@ -1,0 +1,270 @@
+const PDFDocument = require('pdfkit');
+const fs = require('fs');
+const path = require('path');
+//const logger = require('../utils/logger');
+const { logger } = require('../utils/logger');  // Fixed: use destructuring
+
+// Generate invoice PDF
+const generateInvoicePDF = async (invoice, companyDetails) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ margin: 50, size: 'A4' });
+      const chunks = [];
+      
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+      
+      // Header
+      doc.fontSize(24).font('Helvetica-Bold').text('INVOICE', { align: 'center' });
+      doc.moveDown();
+      
+      // Company Details
+      doc.fontSize(10).font('Helvetica');
+      doc.text(companyDetails.name, 50, 100);
+      doc.text(companyDetails.address, 50, 115);
+      doc.text(`GST: ${companyDetails.gst}`, 50, 130);
+      
+      // Invoice Details
+      doc.text(`Invoice No: ${invoice.invoiceNumber}`, 400, 100);
+      doc.text(`Date: ${new Date(invoice.issueDate).toLocaleDateString()}`, 400, 115);
+      doc.text(`Due Date: ${new Date(invoice.dueDate).toLocaleDateString()}`, 400, 130);
+      
+      // Customer Details
+      doc.moveDown();
+      doc.fontSize(12).font('Helvetica-Bold').text('Bill To:', 50, 180);
+      doc.fontSize(10).font('Helvetica');
+      doc.text(invoice.customerId.name, 50, 195);
+      doc.text(invoice.customerId.email, 50, 210);
+      if (invoice.customerId.address) {
+        doc.text(`${invoice.customerId.address.street}, ${invoice.customerId.address.city}`, 50, 225);
+      }
+      
+      // Line separator
+      doc.moveDown();
+      doc.strokeColor('#cccccc').lineWidth(1).moveTo(50, 260).lineTo(550, 260).stroke();
+      
+      // Table Header
+      const tableTop = 280;
+      doc.fontSize(10).font('Helvetica-Bold');
+      doc.text('Description', 50, tableTop);
+      doc.text('Quantity', 300, tableTop, { width: 80, align: 'center' });
+      doc.text('Unit Price', 380, tableTop, { width: 80, align: 'right' });
+      doc.text('Total', 480, tableTop, { width: 80, align: 'right' });
+      
+      // Table rows
+      let yPosition = tableTop + 20;
+      invoice.items.forEach((item, index) => {
+        doc.fontSize(9).font('Helvetica');
+        doc.text(item.description, 50, yPosition);
+        doc.text(item.quantity.toString(), 300, yPosition, { width: 80, align: 'center' });
+        doc.text(`₹${item.unitPrice.toLocaleString()}`, 380, yPosition, { width: 80, align: 'right' });
+        doc.text(`₹${item.total.toLocaleString()}`, 480, yPosition, { width: 80, align: 'right' });
+        yPosition += 20;
+      });
+      
+      // Totals
+      yPosition += 20;
+      doc.strokeColor('#cccccc').lineWidth(1).moveTo(50, yPosition).lineTo(550, yPosition).stroke();
+      yPosition += 10;
+      
+      doc.fontSize(10).font('Helvetica');
+      doc.text('Subtotal:', 400, yPosition, { width: 100, align: 'right' });
+      doc.text(`₹${invoice.subtotal.toLocaleString()}`, 500, yPosition, { width: 80, align: 'right' });
+      
+      yPosition += 20;
+      doc.text(`GST (18%):`, 400, yPosition, { width: 100, align: 'right' });
+      doc.text(`₹${invoice.gstAmount.toLocaleString()}`, 500, yPosition, { width: 80, align: 'right' });
+      
+      if (invoice.discount > 0) {
+        yPosition += 20;
+        doc.text('Discount:', 400, yPosition, { width: 100, align: 'right' });
+        doc.text(`-₹${invoice.discount.toLocaleString()}`, 500, yPosition, { width: 80, align: 'right' });
+      }
+      
+      yPosition += 25;
+      doc.fontSize(12).font('Helvetica-Bold');
+      doc.text('Total:', 400, yPosition, { width: 100, align: 'right' });
+      doc.text(`₹${invoice.totalAmount.toLocaleString()}`, 500, yPosition, { width: 80, align: 'right' });
+      
+      // Footer
+      const footerY = 750;
+      doc.fontSize(8).font('Helvetica');
+      doc.text('Thank you for your business!', 50, footerY, { align: 'center', width: 500 });
+      doc.text('Terms: Payment due within 15 days', 50, footerY + 15, { align: 'center', width: 500 });
+      
+      doc.end();
+    } catch (error) {
+      logger.error('Generate invoice PDF error:', error);
+      reject(error);
+    }
+  });
+};
+
+// Generate report PDF
+const generateReportPDF = async (report, data) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ margin: 50 });
+      const chunks = [];
+      
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+      
+      // Header
+      doc.fontSize(20).font('Helvetica-Bold').text(report.name, { align: 'center' });
+      doc.moveDown();
+      doc.fontSize(10).font('Helvetica');
+      doc.text(`Generated: ${new Date().toLocaleString()}`, { align: 'center' });
+      doc.text(`Generated By: ${report.generatedBy?.name || 'System'}`, { align: 'center' });
+      doc.moveDown();
+      
+      // Parameters
+      doc.fontSize(12).font('Helvetica-Bold').text('Report Parameters:');
+      doc.fontSize(10).font('Helvetica');
+      Object.entries(report.parameters || {}).forEach(([key, value]) => {
+        if (value) {
+          doc.text(`${key}: ${value}`);
+        }
+      });
+      
+      doc.moveDown();
+      doc.strokeColor('#cccccc').lineWidth(1).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown();
+      
+      // Data Table
+      if (data && data.length > 0) {
+        const headers = Object.keys(data[0]);
+        let yPosition = doc.y;
+        
+        // Headers
+        doc.fontSize(9).font('Helvetica-Bold');
+        let xPosition = 50;
+        headers.forEach(header => {
+          doc.text(header.toUpperCase(), xPosition, yPosition, { width: 100, align: 'left' });
+          xPosition += 80;
+        });
+        
+        yPosition += 15;
+        
+        // Data rows
+        doc.fontSize(8).font('Helvetica');
+        data.forEach(row => {
+          xPosition = 50;
+          headers.forEach(header => {
+            doc.text(String(row[header] || '-'), xPosition, yPosition, { width: 100, align: 'left' });
+            xPosition += 80;
+          });
+          yPosition += 15;
+          
+          if (yPosition > 750) {
+            doc.addPage();
+            yPosition = 50;
+          }
+        });
+      }
+      
+      doc.end();
+    } catch (error) {
+      logger.error('Generate report PDF error:', error);
+      reject(error);
+    }
+  });
+};
+
+// Generate generic PDF from HTML template
+const generatePDFFromHTML = async (html, options = {}) => {
+  // This would require a library like puppeteer or html-pdf
+  // For now, returning a simple implementation
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument();
+      const chunks = [];
+      
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      
+      // Simple text rendering (for HTML, you'd want a proper converter)
+      doc.fontSize(12).text(html.replace(/<[^>]*>/g, ''), { align: 'left' });
+      doc.end();
+    } catch (error) {
+      reject(error);
+    }
+  });
+};
+
+// Generate attendance report PDF
+const generateAttendancePDF = async (attendanceData, reportName) => {
+  return new Promise((resolve, reject) => {
+    try {
+      const doc = new PDFDocument({ margin: 50 });
+      const chunks = [];
+      
+      doc.on('data', chunk => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      
+      doc.fontSize(18).font('Helvetica-Bold').text(reportName, { align: 'center' });
+      doc.moveDown();
+      doc.fontSize(10).font('Helvetica');
+      doc.text(`Generated: ${new Date().toLocaleString()}`, { align: 'center' });
+      doc.moveDown();
+      
+      // Summary section
+      const totals = attendanceData.reduce((acc, curr) => {
+        acc.totalPresent += curr.totalPresent || 0;
+        acc.totalLate += curr.totalLate || 0;
+        acc.totalAbsent += curr.totalAbsent || 0;
+        acc.totalHours += curr.totalHours || 0;
+        return acc;
+      }, { totalPresent: 0, totalLate: 0, totalAbsent: 0, totalHours: 0 });
+      
+      doc.fontSize(12).font('Helvetica-Bold').text('Summary');
+      doc.fontSize(10).font('Helvetica');
+      doc.text(`Total Present Days: ${totals.totalPresent}`);
+      doc.text(`Total Late Days: ${totals.totalLate}`);
+      doc.text(`Total Absent Days: ${totals.totalAbsent}`);
+      doc.text(`Total Hours Worked: ${totals.totalHours.toFixed(2)}`);
+      
+      doc.moveDown();
+      doc.strokeColor('#cccccc').lineWidth(1).moveTo(50, doc.y).lineTo(550, doc.y).stroke();
+      doc.moveDown();
+      
+      // Details table
+      doc.fontSize(9).font('Helvetica-Bold');
+      doc.text('Employee', 50, doc.y);
+      doc.text('Present', 250, doc.y, { width: 60, align: 'center' });
+      doc.text('Late', 310, doc.y, { width: 60, align: 'center' });
+      doc.text('Absent', 370, doc.y, { width: 60, align: 'center' });
+      doc.text('Hours', 430, doc.y, { width: 60, align: 'center' });
+      
+      let yPosition = doc.y + 15;
+      doc.fontSize(8).font('Helvetica');
+      
+      attendanceData.forEach(emp => {
+        if (yPosition > 750) {
+          doc.addPage();
+          yPosition = 50;
+        }
+        doc.text(emp.name, 50, yPosition);
+        doc.text(emp.totalPresent?.toString() || '0', 250, yPosition, { width: 60, align: 'center' });
+        doc.text(emp.totalLate?.toString() || '0', 310, yPosition, { width: 60, align: 'center' });
+        doc.text(emp.totalAbsent?.toString() || '0', 370, yPosition, { width: 60, align: 'center' });
+        doc.text((emp.totalHours?.toFixed(2) || '0'), 430, yPosition, { width: 60, align: 'center' });
+        yPosition += 15;
+      });
+      
+      doc.end();
+    } catch (error) {
+      logger.error('Generate attendance PDF error:', error);
+      reject(error);
+    }
+  });
+};
+
+module.exports = {
+  generateInvoicePDF,
+  generateReportPDF,
+  generatePDFFromHTML,
+  generateAttendancePDF,
+};

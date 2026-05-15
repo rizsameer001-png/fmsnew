@@ -1,0 +1,58 @@
+
+admin@fms.com
+Admin@123
+my-attendance
+
+
+Notification validation failed: body: Path `body` is required., userId: Path `userId` is required.
+
+
+
+
+
+
+
+
+
+CalendarDaysIcon
+
+StatsCard
+
+chunk-PCLCPLLR.js?v=e9514146:9145 Uncaught ReferenceError: ArrowTrendingUpIcon is not defined
+    at StatsCard (StatsCard.jsx:104:14)
+
+api.js:85 📥 API Response: /notifications/unread/count 
+{success: true, count: 0}
+SocketContext.jsx:75 WebSocket connection to 'ws://localhost:5000/socket.io/?EIO=4&transport=websocket' failed: WebSocket is closed before the connection is established.
+﻿
+
+Press ctrl i to turn on code suggestions. Press ctrl x to disable code suggestions.
+ctrl
+i
+ to turn on code suggestions. Don't show again
+
+
+5. Update Sidebar.jsx to include "My Attendance" link
+Add this to each role's menu:
+
+jsx
+// For super_admin menu:
+{ name: 'My Attendance', path: '/admin/my-attendance', icon: ClockIcon },
+
+// For manager menu:
+{ name: 'My Attendance', path: '/manager/my-attendance', icon: ClockIcon },
+
+// For supervisor menu:
+{ name: 'My Attendance', path: '/supervisor/my-attendance', icon: ClockIcon },
+
+// For technician menu:
+{ name: 'My Attendance', path: '/technician/my-attendance', icon: ClockIcon },
+📊 Summary of Features
+Role	Can Check-in/out	View Own Attendance	View Team Attendance	Approve Others
+Super Admin	✅ Yes	✅ Yes	✅ All Employees	✅ Yes
+Manager	✅ Yes	✅ Yes	✅ Building Team	✅ Yes
+Supervisor	✅ Yes	✅ Yes	✅ Their Technicians	❌ No
+Technician	✅ Yes	✅ Yes	❌ No	❌ No
+Customer	❌ No	❌ No	❌ No	❌ No
+Now ALL employees (Super Admin, Manager, Supervisor, Technician) can check-in and check-out with GPS location verification! 🎉
+

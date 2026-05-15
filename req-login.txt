@@ -1,0 +1,104 @@
+//issues- Failed to send bulk emails 
+Salary Management
+Manage employee salaries, monthly payroll, and send salary slips via email
+//2 Selfy Login failed
+"[object Object]" is not valid JSON
+
+
+client/src/pages/admin/SalaryConfig.jsx (COMPLETE DYNAMIC)
+
+SalaryManagement.jsx
+ Update salary.service.js
+
+1.Task Asigment And montering- super Admin can create team under (manager or superwiser ) Admin->manager->superwiser->technicians. each manager and superwiser can see assign task, monitor, work verification,inspection Building site with upload multiple images. All task,asigment site inspection, Complains,Field Staff Monitoring should show in dashboard of super_admin, manager, superwiser,
+with Active Tasks, completed task, pending stask, SLA Breached
+2.User Management,Role Management and in chat admin can configure for chat enabled or not(chat should be commman but restricted)
+
+Attendance Monitoring ,Track your team attendance
+
+"[object Object]" is not valid JSON for 
+
+
+
+// Add these imports
+import SalaryManagement from './pages/admin/SalaryManagement';
+import MySalary from './pages/employee/MySalary';
+
+// Add these routes in admin section
+<Route path="/admin/salary" element={<SalaryManagement />} />
+
+// Add route for employee
+<Route path="/employee/my-salary" element={<MySalary />} />
+
+
+in Salary Management Generate Salary -customer name should not come in dropdown and got massage "Route not found" -Generate salaries for all employees for May 2026? not working 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+1.Raise a Complaint
+2.Request a Service
+3.Schedule a service appointment at your convenience
+4.My Complaints
+Track the status of your complaints
+5.Invoices
+View and pay your bills online
+6.Payment History
+View all your past transactions
+7.manager-Online • Support Team
+8.Service History
+
+📧 Email: admin@fms.com
+🔑 Password: Admin@123
+👤 Role: super_admin
+User already exists
+
+mark technician@fms.com
+
+netstat -ano | findstr :5000
+
+taskkill /PID <PID> /F
+
+customer	customer@fms.com	9877665540	Customer	-	Active	15/05/2026	
+
+
+
+pintu Technician	pintu.technician@fms.com	9754337700	Technician	Electrician	Active	15/05/2026	
+
+
+
+asif supervisor	asif@fms.com	9988555440	Supervisor	-	Active	15/05/2026	
+
+
+
+manager aman	aman@fms.com	9896669000	Manager	-	Active	15/05/2026	
+
+
+
+manager	manager@fms.com	7777777770	Customer	-	Active	15/05/2026	
+
+
+
+asim	asim@fms.com	9888888880	Super Admin	-	Active	14/05/2026	
+
+
+
+Super Admin	admin@fms.com	9999999999	Super Admin
