@@ -66,10 +66,6 @@ View all your past transactions
 7.manager-Online • Support Team
 8.Service History
 
-📧 Email: admin@fms.com
-🔑 Password: Admin@123
-👤 Role: super_admin
-User already exists
 
 mark technician@fms.com
 
@@ -81,24 +77,4 @@ customer	customer@fms.com	9877665540	Customer	-	Active	15/05/2026
 
 
 
-pintu Technician	pintu.technician@fms.com	9754337700	Technician	Electrician	Active	15/05/2026	
 
-
-
-asif supervisor	asif@fms.com	9988555440	Supervisor	-	Active	15/05/2026	
-
-
-
-manager aman	aman@fms.com	9896669000	Manager	-	Active	15/05/2026	
-
-
-
-manager	manager@fms.com	7777777770	Customer	-	Active	15/05/2026	
-
-
-
-asim	asim@fms.com	9888888880	Super Admin	-	Active	14/05/2026	
-
-
-
-Super Admin	admin@fms.com	9999999999	Super Admin
